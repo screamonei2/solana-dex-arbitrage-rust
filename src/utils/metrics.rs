@@ -1,7 +1,22 @@
 #[cfg(feature = "metrics")]
-use prometheus::{Counter, Histogram, Gauge, register_counter, register_histogram, register_gauge};
+use prometheus::{
+    Counter, CounterVec, Gauge, GaugeVec, Histogram, HistogramVec,
+    Opts, Registry, TextEncoder, Encoder
+};
+use once_cell::sync::Lazy;
+use std::sync::Arc;
+use anyhow::Result;
 
 use std::sync::OnceLock;
+
+// Global metrics registry
+pub static REGISTRY: Lazy<Registry> = Lazy::new(|| {
+    Registry::new()
+});
+
+// ============================================================================
+// ARBITRAGE METRICS - Defined below with OnceLock
+// ============================================================================
 
 // ============================================================================
 // METRICS INITIALIZATION
@@ -9,10 +24,6 @@ use std::sync::OnceLock;
 
 #[cfg(feature = "metrics")]
 static PRICE_UPDATES_CELL: OnceLock<Counter> = OnceLock::new();
-#[cfg(feature = "metrics")]
-static ARBITRAGE_ATTEMPTS_CELL: OnceLock<Counter> = OnceLock::new();
-#[cfg(feature = "metrics")]
-static ARBITRAGE_SUCCESSES_CELL: OnceLock<Counter> = OnceLock::new();
 #[cfg(feature = "metrics")]
 static OPPORTUNITIES_DETECTED_CELL: OnceLock<Counter> = OnceLock::new();
 

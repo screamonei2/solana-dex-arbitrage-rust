@@ -6,7 +6,7 @@ use std::str::FromStr;
 use chrono::Utc;
 
 use crate::dex::traits::{DexClient, Quote, DexError, DexType};
-use crate::utils::constants::*;
+use crate::utils::constants::{BONK_MINT, SOL_MINT, DEFAULT_RPC_TIMEOUT};
 
 /// Saber - AMM para Stablecoins e wrapped tokens
 /// Program ID: SSwpkEEcbUqx4vtoEByFjSkhKdCT862DNVb52nZg1UZ
@@ -73,10 +73,7 @@ impl SaberClient {
 
         if !response.status().is_success() {
             // Pool não encontrado - Saber tem suporte limitado a BONK
-            return Err(DexError::InvalidTokenPair {
-                input: "BONK".to_string(),
-                output: "SOL".to_string(),
-            });
+            return Err(DexError::InvalidTokenPair);
         }
 
         // Simular pool Saber para desenvolvimento
@@ -150,8 +147,8 @@ impl SaberClient {
     pub fn supports_bonk_pair(&self, input_mint: &Pubkey, output_mint: &Pubkey) -> bool {
         // Saber tem suporte limitado a BONK/SOL
         // Principalmente focado em stablecoins
-        let is_bonk_sol = (input_mint == &*BONK_MINT_PUBKEY && output_mint == &*SOL_MINT_PUBKEY) ||
-                          (input_mint == &*SOL_MINT_PUBKEY && output_mint == &*BONK_MINT_PUBKEY);
+                let is_bonk_sol = (input_mint == &*BONK_MINT && output_mint == &*SOL_MINT) ||
+                           (input_mint == &*SOL_MINT && output_mint == &*BONK_MINT);
         
         // Retornar false por enquanto já que Saber não tem pool BONK/SOL ativo
         false // Mudaria para `is_bonk_sol` se pool existisse
@@ -169,16 +166,13 @@ impl DexClient for SaberClient {
     ) -> Result<Quote, DexError> {
         // Verificar suporte ao par
         if !self.supports_bonk_pair(input_mint, output_mint) {
-            return Err(DexError::InvalidTokenPair {
-                input: input_mint.to_string(),
-                output: output_mint.to_string(),
-            });
+            return Err(DexError::InvalidTokenPair);
         }
 
         let pool = self.get_stable_pool().await?;
         
         // Determinar índice do token
-        let input_token_index = if input_mint == &*BONK_MINT_PUBKEY { 0 } else { 1 };
+        let input_token_index = if input_mint == &*BONK_MINT { 0 } else { 1 };
         
         let stable_quote = self.calculate_stable_swap(&pool, amount, input_token_index)?;
         
@@ -221,8 +215,8 @@ impl DexClient for SaberClient {
         // Em produção, usar Saber SDK para criar instruções
         let swap_params = SwapParams {
             pool_address: "saber_bonk_wsol_pool".to_string(),
-            input_token_index: if quote.input_mint == *BONK_MINT_PUBKEY { 0 } else { 1 },
-            output_token_index: if quote.input_mint == *BONK_MINT_PUBKEY { 1 } else { 0 },
+                            input_token_index: if quote.input_mint == *BONK_MINT { 0 } else { 1 },
+                output_token_index: if quote.input_mint == *BONK_MINT { 1 } else { 0 },
             input_amount: quote.input_amount,
             minimum_output_amount: quote.output_amount,
         };
@@ -240,10 +234,7 @@ impl DexClient for SaberClient {
         output_mint: &Pubkey,
     ) -> Result<(u64, u64), DexError> {
         if !self.supports_bonk_pair(input_mint, output_mint) {
-            return Err(DexError::InvalidTokenPair {
-                input: input_mint.to_string(),
-                output: output_mint.to_string(),
-            });
+            return Err(DexError::InvalidTokenPair);
         }
 
         let pool = self.get_stable_pool().await?;

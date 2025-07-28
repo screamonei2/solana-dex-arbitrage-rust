@@ -167,10 +167,7 @@ impl MercurialClient {
             }
         }
         
-        Err(DexError::InvalidTokenPair {
-            input: input_mint.to_string(),
-            output: output_mint.to_string(),
-        })
+            return Err(DexError::InvalidTokenPair);
     }
 
     /// Calcular swap usando curva StableSwap otimizada
@@ -184,10 +181,7 @@ impl MercurialClient {
         let input_index = pool.tokens
             .iter()
             .position(|t| t.mint == input_mint.to_string())
-            .ok_or(DexError::InvalidTokenPair {
-                input: input_mint.to_string(),
-                output: "unknown".to_string(),
-            })?;
+            return Err(DexError::InvalidTokenPair);
         
         let output_index = if input_index == 0 { 1 } else { 0 };
         

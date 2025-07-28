@@ -7,6 +7,46 @@ use solana_sdk::transaction::Transaction;
 use std::collections::HashMap;
 
 // ============================================================================
+// DEX ERROR TYPE
+// ============================================================================
+
+#[derive(Debug, Error)]
+pub enum DexError {
+    #[error("Failed to fetch quote: {0}")]
+    QuoteFetchError(String),
+    
+    #[error("Insufficient liquidity for trade")]
+    InsufficientLiquidity,
+    
+    #[error("Price impact too high: {0}%")]
+    PriceImpactTooHigh(f64),
+    
+    #[error("Pool not found: {0}")]
+    PoolNotFound(String),
+    
+    #[error("Invalid pool state")]
+    InvalidPoolState,
+    
+    #[error("Transaction failed: {0}")]
+    TransactionFailed(String),
+    
+    #[error("RPC error: {0}")]
+    RpcError(String),
+    
+    #[error("Deserialization error: {0}")]
+    DeserializationError(String),
+    
+    #[error("API error: {0}")]
+    Api(String),
+    
+    #[error("Invalid token pair")]
+    InvalidTokenPair,
+    
+    #[error("Unknown error: {0}")]
+    Unknown(String),
+}
+
+// ============================================================================
 // DEX TYPE ENUM
 // ============================================================================
 
@@ -82,18 +122,38 @@ pub trait DexClient: Send + Sync {
     /// Get the DEX type
     fn dex_type(&self) -> DexType;
     
+    /// Get the DEX type (alias for compatibility)
+    fn get_dex_type(&self) -> DexType {
+        self.dex_type()
+    }
+    
+    /// Get the DEX name
+    fn get_name(&self) -> &'static str;
+    
+    /// Get fee in basis points
+    fn get_fee_bps(&self) -> u16;
+    
+    /// Get liquidity for a trading pair (returns token_a_amount, token_b_amount)
+    async fn get_liquidity(
+        &self,
+        token_a: &Pubkey,
+        token_b: &Pubkey,
+    ) -> Result<(u64, u64), Box<dyn std::error::Error + Send + Sync>>;
+    
     /// Get a quote for swapping tokens
     async fn get_quote(
         &self,
         input_mint: &Pubkey,
         output_mint: &Pubkey,
         amount: u64,
+        slippage_bps: u16,
     ) -> Result<Quote, Box<dyn std::error::Error + Send + Sync>>;
     
     /// Execute a swap transaction
     async fn execute_swap(
         &self,
         quote: &Quote,
+        user_keypair: &solana_sdk::signature::Keypair,
     ) -> Result<SwapResult, Box<dyn std::error::Error + Send + Sync>>;
     
     /// Get current fee information

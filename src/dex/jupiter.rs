@@ -23,7 +23,7 @@ impl DexClient for JupiterClient {
         _slippage_bps: u16,
     ) -> Result<Quote, DexError> {
         // TODO: Implement actual Jupiter API call
-        Err(DexError::Api { message: "Not implemented".to_string() })
+        Err(DexError::Api("Not implemented".to_string()))
     }
     
     async fn execute_swap(
@@ -32,7 +32,7 @@ impl DexClient for JupiterClient {
         _user_keypair: &solana_sdk::signature::Keypair,
     ) -> Result<String, DexError> {
         // TODO: Implement actual swap execution
-        Err(DexError::Api { message: "Not implemented".to_string() })
+        Err(DexError::Api("Not implemented".to_string()))
     }
     
     async fn get_liquidity(

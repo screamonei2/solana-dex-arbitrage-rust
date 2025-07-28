@@ -64,4 +64,24 @@ pub fn format_signature(signature: &str) -> String {
 /// Get current timestamp in milliseconds
 pub fn current_timestamp_ms() -> u64 {
     chrono::Utc::now().timestamp_millis() as u64
+}
+
+/// Check if the RPC endpoint is a public endpoint (inadequate for production)
+pub fn is_public_rpc_endpoint(url: &str) -> bool {
+    url.contains("api.mainnet-beta.solana.com") ||
+    url.contains("solana-api.projectserum.com") ||
+    url.contains("api.devnet.solana.com") ||
+    url.contains("api.testnet.solana.com") ||
+    url.contains("rpc.ankr.com/solana") ||
+    url.contains("solana-mainnet.g.alchemy.com/v2/demo") // Free tier
+}
+
+/// Check if the RPC provider is a valid professional provider
+pub fn is_valid_rpc_provider(url: &str) -> bool {
+    url.contains("helius-rpc.com") ||
+    url.contains("quiknode.pro") ||
+    url.contains("g.alchemy.com") ||
+    url.contains("chainstack.com") ||
+    url.contains("getblock.io") ||
+    url.contains("blockdaemon.com")
 } 

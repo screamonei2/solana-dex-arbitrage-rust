@@ -8,6 +8,7 @@ use tracing::{warn, debug, error};
 use thiserror::Error;
 
 use crate::utils::constants::*;
+use crate::utils::helpers::is_public_rpc_endpoint;
 
 #[derive(Debug, Error)]
 pub enum RateLimitError {

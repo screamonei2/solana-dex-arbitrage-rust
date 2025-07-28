@@ -6,7 +6,7 @@ use std::str::FromStr;
 use chrono::Utc;
 
 use crate::dex::traits::{DexClient, Quote, DexError, DexType};
-use crate::utils::constants::*;
+use crate::utils::constants::{BONK_MINT, SOL_MINT, DEFAULT_RPC_TIMEOUT};
 
 /// Lifinity - Proactive Market Maker (PMM) 
 /// Program ID: EewxydAPCCVuNEyrVN68PuSYdQ7wKn27V9Gjeoi8dy3S
@@ -99,7 +99,7 @@ impl LifinityClient {
         let pool_info = self.get_pool_info().await?;
         
         // Determinar direção do swap
-        let is_bonk_to_sol = input_mint == &*BONK_MINT_PUBKEY;
+        let is_bonk_to_sol = input_mint == &*BONK_MINT;
         
         // PMM formula considera:
         // 1. Oracle price (Pyth/Switchboard)
@@ -209,14 +209,11 @@ impl DexClient for LifinityClient {
         slippage_bps: u16,
     ) -> Result<Quote, DexError> {
         // Verificar se é par BONK/SOL
-        let is_bonk_sol = (input_mint == &*BONK_MINT_PUBKEY && output_mint == &*SOL_MINT_PUBKEY) ||
-                          (input_mint == &*SOL_MINT_PUBKEY && output_mint == &*BONK_MINT_PUBKEY);
+        let is_bonk_sol = (input_mint == &*BONK_MINT && output_mint == &*SOL_MINT) ||
+                          (input_mint == &*SOL_MINT && output_mint == &*BONK_MINT);
 
         if !is_bonk_sol {
-            return Err(DexError::InvalidTokenPair {
-                input: input_mint.to_string(),
-                output: output_mint.to_string(),
-            });
+            return Err(DexError::InvalidTokenPair);
         }
 
         let pmm_quote = self.calculate_pmm_quote(input_mint, output_mint, amount).await?;
@@ -278,14 +275,11 @@ impl DexClient for LifinityClient {
         input_mint: &Pubkey,
         output_mint: &Pubkey,
     ) -> Result<(u64, u64), DexError> {
-        let is_bonk_sol = (input_mint == &*BONK_MINT_PUBKEY && output_mint == &*SOL_MINT_PUBKEY) ||
-                          (input_mint == &*SOL_MINT_PUBKEY && output_mint == &*BONK_MINT_PUBKEY);
+        let is_bonk_sol = (input_mint == &*BONK_MINT && output_mint == &*SOL_MINT) ||
+                          (input_mint == &*SOL_MINT && output_mint == &*BONK_MINT);
 
         if !is_bonk_sol {
-            return Err(DexError::InvalidTokenPair {
-                input: input_mint.to_string(),
-                output: output_mint.to_string(),
-            });
+            return Err(DexError::InvalidTokenPair);
         }
 
         let pool_info = self.get_pool_info().await?;
@@ -308,8 +302,8 @@ impl DexClient for LifinityClient {
         output_mint: &Pubkey,
     ) -> Result<bool, DexError> {
         // Lifinity suporta BONK/SOL via PMM
-        let is_bonk_sol = (input_mint == &*BONK_MINT_PUBKEY && output_mint == &*SOL_MINT_PUBKEY) ||
-                          (input_mint == &*SOL_MINT_PUBKEY && output_mint == &*BONK_MINT_PUBKEY);
+        let is_bonk_sol = (input_mint == &*BONK_MINT && output_mint == &*SOL_MINT) ||
+                          (input_mint == &*SOL_MINT && output_mint == &*BONK_MINT);
         Ok(is_bonk_sol)
     }
 
