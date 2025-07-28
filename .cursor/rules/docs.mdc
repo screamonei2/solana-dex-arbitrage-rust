@@ -1,0 +1,8 @@
+---
+alwaysApply: true
+---
+
+@ALL_BASE.md
+@dev_rules.md
+@Project_rules.md
+@TASKS.md
