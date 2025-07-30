@@ -23,6 +23,7 @@ use risk::RiskManager;
 use utils::rate_limiting::{RpcRateLimiter, RateLimitError};
 use utils::priority_fees::DynamicPriorityFeeCalculator;
 use utils::constants::*;
+use utils::helpers::{is_public_rpc_endpoint, is_valid_rpc_provider};
 
 pub struct ArbitrageBot {
     pub config: Arc<BotConfig>,
@@ -56,8 +57,12 @@ impl ArbitrageBot {
         // NOVO 2024: Inicializar calculadora de priority fees dinâmicas
         let priority_fee_calculator = Arc::new(DynamicPriorityFeeCalculator::new(
             Arc::clone(&rpc_client),
-            config.trading.base_priority_fee,
-            config.trading.max_priority_fee_lamports,
+            crate::execution::jito::MevProtectionConfig {
+                max_priority_fee_lamports: config.trading.max_priority_fee_lamports,
+                min_priority_fee_lamports: config.trading.base_priority_fee,
+                dynamic_adjustment: config.mev_protection.priority_fee_dynamic,
+                slippage_adaptive: config.mev_protection.slippage_adaptive,
+            },
         ));
         
         // Inicializar componentes principais
@@ -395,8 +400,9 @@ async fn start_metrics_server(port: u16) -> Result<()> {
     info!("Métricas disponíveis em http://0.0.0.0:{}/metrics", port);
     info!("Health check disponível em http://0.0.0.0:{}/health", port);
     
-    axum::Server::bind(&addr)
-        .serve(app.into_make_service())
+    // Use the newer axum API
+    let listener = tokio::net::TcpListener::bind(addr).await?;
+    axum::serve(listener, app)
         .await
         .map_err(|e| anyhow::anyhow!("Servidor de métricas falhou: {}", e))
 }

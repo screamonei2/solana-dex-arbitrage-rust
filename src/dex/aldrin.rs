@@ -191,10 +191,7 @@ impl AldrinClient {
             }
         }
         
-        best_pool.ok_or(DexError::InvalidTokenPair {
-            input: input_mint.to_string(),
-            output: output_mint.to_string(),
-        })
+            return Err(DexError::InvalidTokenPair);
     }
 
     /// Calcular swap baseado no tipo de curva

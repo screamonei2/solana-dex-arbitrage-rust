@@ -1,6 +1,8 @@
 use solana_sdk::pubkey::Pubkey;
 use std::str::FromStr;
 use std::time::Duration;
+use std::sync::OnceLock;
+use once_cell::sync::Lazy;
 
 // ============================================================================
 // MINT ADDRESSES
@@ -16,8 +18,6 @@ pub const SOL_MINT_STRING: &str = "So11111111111111111111111111111111111111112";
 pub const USDC_MINT_STRING: &str = "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v";
 
 // Lazy statics para Pubkeys (usando once_cell como alternativa a lazy_static)
-use std::sync::OnceLock;
-
 static BONK_MINT_PUBKEY_CELL: OnceLock<Pubkey> = OnceLock::new();
 static SOL_MINT_PUBKEY_CELL: OnceLock<Pubkey> = OnceLock::new();
 static USDC_MINT_PUBKEY_CELL: OnceLock<Pubkey> = OnceLock::new();
@@ -258,3 +258,22 @@ pub fn calculate_profit_percentage(buy_price: f64, sell_price: f64) -> f64 {
     }
     ((sell_price - buy_price) / buy_price) * 100.0
 } 
+
+/// Initialize all static constants
+pub fn init_constants() {
+    let _ = BONK_MINT_PUBKEY.set(
+        Pubkey::from_str(BONK_MINT_STRING).expect("Invalid BONK mint address")
+    );
+    let _ = SOL_MINT_PUBKEY.set(
+        Pubkey::from_str(SOL_MINT_STRING).expect("Invalid SOL mint address")
+    );
+}
+
+// Convenient aliases for common usage
+pub static BONK_MINT: Lazy<Pubkey> = Lazy::new(|| {
+    Pubkey::from_str(BONK_MINT_STRING).expect("Invalid BONK mint address")
+});
+
+pub static SOL_MINT: Lazy<Pubkey> = Lazy::new(|| {
+    Pubkey::from_str(SOL_MINT_STRING).expect("Invalid SOL mint address")
+}); 

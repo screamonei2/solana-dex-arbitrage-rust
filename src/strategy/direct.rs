@@ -6,7 +6,7 @@ use tracing::{debug, info};
 use crate::config::BotConfig;
 use crate::monitoring::PriceData;
 use crate::dex::DexType;
-use crate::utils::{SOL_MINT_PUBKEY, BONK_MINT_PUBKEY};
+use crate::utils::{SOL_MINT, BONK_MINT};
 use super::{ArbitrageOpportunity, StrategyType, TradeStep};
 
 pub struct DirectArbitrageStrategy {
@@ -62,8 +62,8 @@ impl DirectArbitrageStrategy {
                     *dex_b,
                     price_a,
                     price_b,
-                    *BONK_MINT_PUBKEY,
-                    *SOL_MINT_PUBKEY,
+                    *BONK_MINT,
+                    *SOL_MINT,
                 ).await {
                     opportunities.push(opportunity);
                 }
@@ -92,8 +92,8 @@ impl DirectArbitrageStrategy {
                     *dex_b,
                     price_a,
                     price_b,
-                    *SOL_MINT_PUBKEY,
-                    *BONK_MINT_PUBKEY,
+                    *SOL_MINT,
+                    *BONK_MINT,
                 ).await {
                     opportunities.push(opportunity);
                 }
@@ -113,7 +113,7 @@ impl DirectArbitrageStrategy {
         output_mint: solana_sdk::pubkey::Pubkey,
     ) -> Option<ArbitrageOpportunity> {
         // Basic arbitrage calculation: buy low, sell high
-        if price_sell.price <= price_buy.price {
+        if price_sell.price_sol <= price_buy.price_sol {
             return None;
         }
         
@@ -122,14 +122,14 @@ impl DirectArbitrageStrategy {
         // Calculate expected output after fees and slippage
         let step1_output = self.calculate_swap_output(
             input_amount,
-            price_buy.price,
+            price_buy.price_sol,
             dex_buy,
             0.5, // 0.5% slippage estimate
         )?;
         
         let step2_output = self.calculate_swap_output(
             step1_output,
-            price_sell.price,
+            price_sell.price_sol,
             dex_sell,
             0.5, // 0.5% slippage estimate
         )?;

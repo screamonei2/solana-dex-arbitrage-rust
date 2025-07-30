@@ -6,7 +6,7 @@ use std::str::FromStr;
 use chrono::Utc;
 
 use crate::dex::traits::{DexClient, Quote, DexError, DexType};
-use crate::utils::constants::*;
+use crate::utils::constants::{BONK_MINT, SOL_MINT, DEFAULT_RPC_TIMEOUT};
 
 /// OpenBook (Serum v3 Fork) - Central Limit Order Book (CLOB)
 /// Program ID: srmqPvymJeFKQ4zGQed1GFppgkRHL9kaELCbyksJtPX
@@ -142,14 +142,11 @@ impl DexClient for OpenBookClient {
         slippage_bps: u16,
     ) -> Result<Quote, DexError> {
         // Verificar se é par BONK/SOL
-        let is_bonk_sol = (input_mint == &*BONK_MINT_PUBKEY && output_mint == &*SOL_MINT_PUBKEY) ||
-                          (input_mint == &*SOL_MINT_PUBKEY && output_mint == &*BONK_MINT_PUBKEY);
+        let is_bonk_sol = (input_mint == &*BONK_MINT && output_mint == &*SOL_MINT) ||
+                          (input_mint == &*SOL_MINT && output_mint == &*BONK_MINT);
 
         if !is_bonk_sol {
-            return Err(DexError::InvalidTokenPair {
-                input: input_mint.to_string(),
-                output: output_mint.to_string(),
-            });
+            return Err(DexError::InvalidTokenPair);
         }
 
         // Market address para BONK/SOL (placeholder - usar endereço real)
@@ -158,7 +155,7 @@ impl DexClient for OpenBookClient {
         let order_book = self.get_order_book(market_address).await?;
         
         // Determinar se é compra ou venda baseado no par
-        let is_buy = input_mint == &*SOL_MINT_PUBKEY; // SOL -> BONK é compra
+        let is_buy = input_mint == &*SOL_MINT; // SOL -> BONK é compra
         
         let output_amount = self.calculate_quote_from_orderbook(&order_book, amount, is_buy)?;
         
@@ -221,14 +218,11 @@ impl DexClient for OpenBookClient {
         output_mint: &Pubkey,
     ) -> Result<(u64, u64), DexError> {
         // Verificar par BONK/SOL
-        let is_bonk_sol = (input_mint == &*BONK_MINT_PUBKEY && output_mint == &*SOL_MINT_PUBKEY) ||
-                          (input_mint == &*SOL_MINT_PUBKEY && output_mint == &*BONK_MINT_PUBKEY);
+        let is_bonk_sol = (input_mint == &*BONK_MINT && output_mint == &*SOL_MINT) ||
+                          (input_mint == &*SOL_MINT && output_mint == &*BONK_MINT);
 
         if !is_bonk_sol {
-            return Err(DexError::InvalidTokenPair {
-                input: input_mint.to_string(),
-                output: output_mint.to_string(),
-            });
+            return Err(DexError::InvalidTokenPair);
         }
 
         // Simular liquidez do order book
@@ -260,8 +254,8 @@ impl DexClient for OpenBookClient {
         output_mint: &Pubkey,
     ) -> Result<bool, DexError> {
         // OpenBook suporta BONK/SOL
-        let is_bonk_sol = (input_mint == &*BONK_MINT_PUBKEY && output_mint == &*SOL_MINT_PUBKEY) ||
-                          (input_mint == &*SOL_MINT_PUBKEY && output_mint == &*BONK_MINT_PUBKEY);
+        let is_bonk_sol = (input_mint == &*BONK_MINT && output_mint == &*SOL_MINT) ||
+                          (input_mint == &*SOL_MINT && output_mint == &*BONK_MINT);
         Ok(is_bonk_sol)
     }
 

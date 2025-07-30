@@ -55,18 +55,24 @@ pub struct MevProtectionStats {
 #[derive(Debug, Clone)]
 pub struct MevProtectionConfig {
     pub max_priority_fee_lamports: u64,
+    pub min_priority_fee_lamports: u64,
     pub target_confirmation_time: Duration,
     pub dynamic_fee_adjustment: bool,
+    pub dynamic_adjustment: bool, // Alias for compatibility
     pub competition_factor: f64,
+    pub slippage_adaptive: bool,
 }
 
 impl Default for MevProtectionConfig {
     fn default() -> Self {
         Self {
             max_priority_fee_lamports: 50_000, // 0.00005 SOL
+            min_priority_fee_lamports: 10_000, // 0.00001 SOL
             target_confirmation_time: Duration::from_secs(5),
             dynamic_fee_adjustment: true,
+            dynamic_adjustment: true, // Alias for compatibility
             competition_factor: 1.5, // 50% mais que a fee mediana
+            slippage_adaptive: true,
         }
     }
 }
@@ -268,6 +274,9 @@ pub fn create_arbitrage_mev_protection(
         target_confirmation_time: Duration::from_secs(3),
         dynamic_fee_adjustment: true,
         competition_factor: 2.0, // Agressivo para arbitragem
+        min_priority_fee_lamports: 10_000, // Conservador para arbitragem
+        dynamic_adjustment: true, // Alias for compatibility
+        slippage_adaptive: true,
     };
 
     MevProtectionSystem::new(rpc_client, config)

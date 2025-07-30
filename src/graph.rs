@@ -239,7 +239,7 @@ impl Graph {
                 self.add_edge(
                     token_a,
                     token_b,
-                    price_data.price,
+                    price_data.price_sol,  // Using price_sol as the exchange rate
                     self.get_dex_fee(*dex),
                     *dex,
                 );
@@ -248,7 +248,7 @@ impl Graph {
                 self.add_edge(
                     token_b,
                     token_a,
-                    1.0 / price_data.price,
+                    1.0 / price_data.price_sol,  // Using price_sol as the exchange rate
                     self.get_dex_fee(*dex),
                     *dex,
                 );
